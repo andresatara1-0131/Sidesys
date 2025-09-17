@@ -1,23 +1,25 @@
-// 📁 utils/helpers.ts
-// 🛠️ Utilidades corregidas
+// src/utils/helpers.ts
+// ================================================================
+// UTILIDADES GENERALES
+// - Funciones reutilizables: esperas, generación de datos, etc.
+// - Simulan comportamiento humano donde sea necesario.
+// ================================================================
 
-import { Page, TestInfo, expect } from '@playwright/test'; // ✅ Importar expect
+import { Page } from '@playwright/test';
 
-export async function captureEvidence(page: Page, testInfo: TestInfo, name: string): Promise<void> {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const screenshotPath = `test-results/${name}_${timestamp}.png`;
-  
-  await page.screenshot({ path: screenshotPath, fullPage: true });
-  console.log(`📸 Evidencia: ${screenshotPath}`);
+/**
+ * Espera explícita (solo usar si es estrictamente necesario)
+ * @param page - Página actual
+ * @param seconds - Segundos a esperar
+ */
+export async function waitForHuman(page: Page, seconds: number) {
+  await page.waitForTimeout(seconds * 1000); // ← Espera "humana" (evitar si se puede)
 }
 
-export function getRandomItem<T>(array: T[]): T {
-  return array[Math.floor(Math.random() * array.length)];
-}
-
-// ✅ Función corregida con expect importado
-export async function waitForEnabled(page: Page, selector: string, timeout = 10000): Promise<void> {
-  const element = page.locator(selector);
-  await element.waitFor({ state: 'visible', timeout });
-  await expect(element).toBeEnabled({ timeout }); // ✅ Ahora funciona
+/**
+ * Genera un nombre aleatorio para pruebas
+ * @returns string - Nombre aleatorio
+ */
+export function generateRandomName(): string {
+  return `Test_${Math.random().toString(36).substring(2, 8)}`; // ← Ej: "Test_a1b2c3"
 }

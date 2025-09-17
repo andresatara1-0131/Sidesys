@@ -1,39 +1,30 @@
-// 📁 tests/citas/canal-web/crear-cita.spec.ts
-// 🧪 Test CORREGIDO para crear una cita en Canal Web
+// tests/Citas/Canal Web/TestCase_001_Crear_Cita.spec.ts
+// ================================================================
+// TEST CASE: Crear Cita desde Canal Web (SIN LOGIN)
+// Producto: Citas → Canal Web
+// Simula flujo de usuario externo: busca, selecciona, confirma.
+// ================================================================
 
-import { test, expect } from '@playwright/test'; // 🧩 Importar Playwright
-import { CitasWelcomePage } from '../../../pages/citas/canal-web/welcome.page'; // 📄 Page Object welcome
-import { captureEvidence } from '../../../utils/helpers'; // 📸 Utilidad para evidencias
+import { test, expect } from '@playwright/test'; // ← No usa fixture (no requiere login)
+import { CitasWebPage } from '../../../pages/citas/web/CitasWebPage';
+import { testData } from '../../../utils/testData';
 
-test.describe('CitasWeb - Crear Cita', () => {
-  // ✅ ELIMINADO: citasHooks.configureTimeouts();
-  // ✅ Configurar timeout directamente en el test
-  test.setTimeout(240000); // ⏱️ Timeout extendido para flujo completo
+test('TC-010: Debería poder crear cita desde canal web', async ({ page }) => {
+  // Ir directamente a la URL de Citas Web
+  await page.goto(process.env.CITAS_WEB_URL || ''); // ← URL desde .env
 
-  test('Crear cita seleccionando fecha y hora disponible', async ({ page }, testInfo) => {
-    // 🏗️ Inicializar Page Object
-    const welcomePage = new CitasWelcomePage(page);
+  // Instanciar Page Object
+  const citasWebPage = new CitasWebPage(page);
 
-    await test.step('🌐 Navegar a CitasWeb y manejar popups', async () => {
-      await welcomePage.navigate(); // 🌐 Navegar a welcome
-      await welcomePage.handleInitialPopups(); // ✅ Manejar popups iniciales
-      await captureEvidence(page, testInfo, 'pagina_welcome'); // 📸 Evidencia
-    });
+  // Buscar disponibilidad
+  await citasWebPage.buscarDisponibilidad(
+    testData.citaWeb.fecha,        // ← Fecha de prueba
+    testData.citaWeb.especialidad  // ← Especialidad de prueba
+  );
 
-    await test.step('🔐 Login con DNI en Canal Web', async () => {
-      await welcomePage.loginWithDNI('10026917'); // 🔐 Login con DNI
-      await captureEvidence(page, testInfo, 'login_exitoso'); // 📸 Evidencia
-    });
+  // Agendar cita
+  await citasWebPage.agendarCita(); // ← Selecciona horario y confirma
 
-    await test.step('🚀 Iniciar flujo de creación de cita', async () => {
-      await welcomePage.startCreateCitaFlow(); // 🚀 Iniciar creación
-      await captureEvidence(page, testInfo, 'inicio_creacion'); // 📸 Evidencia
-    });
-
-    await test.step('📸 Capturar evidencia final', async () => {
-      await captureEvidence(page, testInfo, 'flujo_completo_creacion_cita'); // 📸 Evidencia
-    });
-
-    console.log('✅ Test de creación de cita iniciado exitosamente'); // 📝 Log final
-  });
+  // Validar que la cita fue agendada (mensaje de éxito)
+  await expect(page.locator('text=Cita agendada')).toBeVisible(); // ← Validación final
 });

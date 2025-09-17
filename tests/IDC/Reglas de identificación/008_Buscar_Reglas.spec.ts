@@ -1,48 +1,22 @@
-// 📁 tests/idc/reglas-identificacion/buscar-reglas-avanzado.spec.ts
-// 🔍 Test avanzado de búsqueda de reglas (para el 008)
+// tests/IDC/Reglas de identificación/008_Buscar_Reglas.spec.ts
+// ================================================================
+// TEST CASE: Búsqueda Avanzada de Reglas
+// Producto: IDC → Reglas de identificación
+// Simula búsqueda por filtros avanzados (tipo, estado, fecha).
+// ================================================================
 
-import { test, expect } from '@playwright/test';
-import { SuiteLoginPage } from '../../../pages/suite/login.page';
-import { SuiteProductsPage } from '../../../pages/suite/products.page'; 
-import { IDCReglasIdentificacionPage } from '../../../pages/idc/reglas-identificacion.page';
-import { captureEvidence } from '../../../utils/helpers';
+import { test, expect } from '../../../src/fixtures/authenticatedSuite';
 
-test.describe('[IDC] Reglas de Identificación - Búsqueda Avanzada', () => {
-  test('008_Buscar_Reglas_Avanzado - Búsqueda con múltiples criterios', async ({ page }, testInfo) => {
-    // 🏗️ Inicializar Page Objects
-    const loginPage = new SuiteLoginPage(page);
-    const productsPage = new SuiteProductsPage(page);
-    const reglasPage = new IDCReglasIdentificacionPage(page);
+test('TC-019: Debería poder buscar reglas con filtros avanzados', async ({ authenticatedPage }) => {
+  const page = authenticatedPage;
 
-    await test.step('🔐 Login y navegación a IDC', async () => {
-      await loginPage.login('admincitas@sidesys.com', 'E%4oCK!Hl');
-      const idcUrl = await productsPage.openIDC();
-      await productsPage.navigateToProductUrl(idcUrl);
-      await reglasPage.navigateToReglasIdentificacion();
-    });
+  await page.click('text=IDC');                                // ← Ir a IDC
+  await page.click('text=Reglas de identificación');           // ← Entrar a Reglas
 
-    await test.step('🔍 Búsqueda con diferentes criterios', async () => {
-      const criteriosBusqueda = [
-        'validación',      // 🔍 Criterio 1
-        'identidad',       // 🔍 Criterio 2  
-        'documento',       // 🔍 Criterio 3
-        '2024'            // 🔍 Criterio 4 (año)
-      ];
+  await page.selectOption('#filtro-tipo', 'Documento');        // ← Filtrar por tipo
+  await page.selectOption('#filtro-estado', 'Activo');         // ← Filtrar por estado
+  await page.fill('#filtro-fecha', '2025-01-01');              // ← Filtrar por fecha
 
-      for (const criterio of criteriosBusqueda) {
-        await test.step(`🔎 Buscando: "${criterio}"`, async () => {
-          await reglasPage.searchInGrid(criterio);
-          await page.waitForTimeout(1000);
-          
-          const count = await reglasPage.getGridRowCount();
-          console.log(`🔍 "${criterio}": ${count} resultados`);
-          
-          // 📸 Evidencia por cada criterio
-          await captureEvidence(page, testInfo, `busqueda_${criterio}`);
-        });
-      }
-    });
-
-    console.log('✅ Test de búsqueda avanzada completado');
-  });
+  await page.click('button:has-text("Aplicar Filtros")');      // ← Aplicar filtros
+  await expect(page.locator('text=Regla Test')).toBeVisible(); // ← Validar resultados
 });
