@@ -1,0 +1,27 @@
+Comando para capturar
+
+npx playwright codegen https://encuestas.sidesys.ar/Suite --browser=Firefox
+npx playwright codegen https://citas.sidesys.com/Suite
+
+Comando para ejecutar test case
+npx playwright test
+
+Ejecutar un test específico
+npx playwright test tests/Suite/Login/login-success.spec.ts
+
+Modo visual para depurar (headed)
+npx playwright test --headed
+
+Ver resultados en el visor HTML
+npx playwright show-report
+
+Modo visual
+npx playwright test --ui
+
+Ejecutar solo los tests de un producto especifico y en orden
+npx playwright test tests/IDC --headed --workers=1
+
+Ejecutar solo un archivo específico 
+npx playwright test tests/IDC/Ordenar_Reglas.spec.ts
+
+
