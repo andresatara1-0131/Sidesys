@@ -6,3 +6,8 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 .env
+.DS_Store
+*.log
+test-results/
+test-report/
+build/

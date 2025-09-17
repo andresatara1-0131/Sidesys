@@ -1,30 +1,65 @@
 // tests/Citas/Canal Web/TestCase_001_Crear_Cita.spec.ts
 // ================================================================
-// TEST CASE: Crear Cita desde Canal Web (SIN LOGIN)
+// TEST CASE: Crear Cita desde Canal Web (usuario existente)
 // Producto: Citas → Canal Web
-// Simula flujo de usuario externo: busca, selecciona, confirma.
+// Simula flujo completo de creación de cita.
+// Toma evidencia en cada paso clave.
 // ================================================================
 
-import { test, expect } from '@playwright/test'; // ← No usa fixture (no requiere login)
-import { CitasWebPage } from '../../../pages/citas/web/CitasWebPage';
-import { testData } from '../../../utils/testData';
+import { test } from '@playwright/test';
+import { CrearCitaPage } from 'D:/EquipoCitas/playwright-demo/pages/citas/web/CrearCitaPage';
 
-test('TC-010: Debería poder crear cita desde canal web', async ({ page }) => {
-  // Ir directamente a la URL de Citas Web
-  await page.goto(process.env.CITAS_WEB_URL || ''); // ← URL desde .env
+test('TC-CITA-01: Debería poder crear una cita desde el canal web', async ({ page }) => {
+  const citaPage = new CrearCitaPage(page);
 
-  // Instanciar Page Object
-  const citasWebPage = new CitasWebPage(page);
+  // Paso 1: Iniciar sesión con usuario existente
+  await citaPage.iniciarSesion('DNI', '10026917');
 
-  // Buscar disponibilidad
-  await citasWebPage.buscarDisponibilidad(
-    testData.citaWeb.fecha,        // ← Fecha de prueba
-    testData.citaWeb.especialidad  // ← Especialidad de prueba
-  );
+  // Paso 2: Iniciar creación de cita
+  await citaPage.iniciarCreacionCita();
 
-  // Agendar cita
-  await citasWebPage.agendarCita(); // ← Selecciona horario y confirma
+  // Paso 3: Seleccionar tipo de cita
+  await citaPage.seleccionarTipoCita();
 
-  // Validar que la cita fue agendada (mensaje de éxito)
-  await expect(page.locator('text=Cita agendada')).toBeVisible(); // ← Validación final
+  // Paso 4: Seleccionar servicios
+  await citaPage.seleccionarServicios([
+    'Actualización de datos',
+    'Adquisición productos',
+    'Caja',
+    'Información',
+    'Asesoría'
+  ]);
+
+  // Paso 5: Continuar después de servicios
+  await citaPage.continuarDespuesServicios();
+
+  // Paso 6: Seleccionar "Mi ubicación"
+  await citaPage.seleccionarMiUbicacion();
+
+  // Paso 7: Seleccionar país y sucursal
+  await citaPage.seleccionarPaisYSucursal('Colombia Calle 95 # 14 - 15');
+
+  // Paso 8: Continuar después de sucursal
+  await citaPage.continuarDespuesSucursal();
+
+  // Paso 9: Seleccionar tipo de atención presencial
+  await citaPage.seleccionarAtencionPresencial();
+
+  // Paso 10: Continuar después de tipo de atención
+  await citaPage.continuarDespuesAtencion();
+
+  // Paso 11: Seleccionar fecha
+  await citaPage.seleccionarFecha('25 de septiembre de');
+
+  // Paso 12: Seleccionar hora
+  await citaPage.seleccionarHora('07:00');
+
+  // Paso 13: Continuar después de hora
+  await citaPage.continuarDespuesHora();
+
+  // Paso 14: Confirmar cita
+  await citaPage.confirmarCita();
+
+  // Paso 15: Validar éxito
+  await citaPage.validarExito();
 });
