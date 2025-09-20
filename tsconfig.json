@@ -1,27 +1,18 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "module": "commonjs",
-    "lib": ["ES2020", "DOM"],
-    "outDir": "./build",
-    "rootDir": "./",
-    "strict": false,  // ✅ Cambiado a false temporalmente
-    "esModuleInterop": true,
-    "skipLibCheck": true,  // ✅ Added to skip lib checks
-    "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "resolveJsonModule": true,
-    "declaration": false,  // ✅ Simplified
-    "sourceMap": true,
-    "types": ["@playwright/test"]  // ✅ Added Playwright types
+    "types": ["node", "playwright"],
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@fixtures/*": ["fixtures/*"],
+      "@pages/*": ["pages/*"],
+      "@utils/*": ["utils/*"]
+    }
   },
-  "include": [
-    "**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "build",
-    "test-results",
-    "playwright-report"
-  ]
+  "include": ["tests", "pages", "fixtures", "utils", "config", "playwright.config.ts"]
 }

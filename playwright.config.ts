@@ -1,56 +1,60 @@
-// playwright.config.ts
-// ================================================================
-// CONFIGURACIÓN PRINCIPAL DE PLAYWRIGHT
-// - Define timeouts, reportes, dispositivos, variables de entorno.
-// - Configura evidencias: screenshots, videos, trace.
-// - Fuerza Chrome, español, 1920x1080, permisos de ubicación.
-// - Evidencias por cada paso clave (no solo al final).
-// ================================================================
+/** Playwright config (pro) — español, geo, 1920×1080, aliases, screenshots y videos HD */
 
-import { defineConfig } from '@playwright/test';
-import { config as dotenvConfig } from 'dotenv';
+import 'tsconfig-paths/register';                         // ← Habilita @fixtures/@pages/@utils
+import { defineConfig, devices } from '@playwright/test'; // ← Núcleo PW
+import * as path from 'path';                             // ← Rutas
+import * as fs from 'fs';                                 // ← FS
+import dotenv from 'dotenv';                              // ← .env
 
-dotenvConfig(); // ← Carga variables de entorno desde .env
+dotenv.config({ path: path.resolve(process.cwd(), '.env') }); // ← Carga variables
+
+const HEADLESS     = (process.env.HEADLESS ?? 'true') !== 'false'; // ← Headless por defecto
+const SLOW_MO_MS   = Number(process.env.SLOW_MO_MS ?? '0');        // ← Delay “humano”
+const LOCALE       = process.env.LOCALE ?? 'es-ES';                // ← Idioma
+const TIMEZONE     = process.env.TIMEZONE ?? 'America/Bogota';     // ← Zona
+const BROWSER_LANG = process.env.BROWSER_LANG ?? 'es-ES,es;q=0.9'; // ← Accept-Language
+const GEO_LAT      = Number(process.env.GEO_LAT ?? '4.7110');      // ← Lat
+const GEO_LON      = Number(process.env.GEO_LON ?? '-74.0721');    // ← Lon
+const EVIDENCE_ROOT= process.env.EVIDENCE_ROOT ?? 'evidencias';    // ← Carpeta evidencias
+
+fs.mkdirSync(EVIDENCE_ROOT, { recursive: true });                  // ← Asegura carpeta
 
 export default defineConfig({
-  testDir: './tests',                    // ← Carpeta donde están tus tests
-  timeout: 180000,                        // ← Tiempo máximo por test (180s)
-  expect: {
-    timeout: 10000,                      // ← Tiempo máximo para expect (10s)
-  },
-  fullyParallel: false,                  // ← false = tests en orden (mejor para login)
-  workers: 1,                            // ← 1 worker = evita conflictos de sesión
+  testDir: 'tests',                                 // ← Carpeta de tests
+  fullyParallel: true,                              // ← Paralelismo por archivo
+  forbidOnly: !!process.env.CI,                     // ← Evita .only en CI
+  retries: process.env.CI ? 1 : 0,                  // ← Reintento en CI
+  timeout: 60_000,                                  // ← Timeout por test
+  expect: { timeout: 10_000 },                      // ← Timeout expect
+
   reporter: [
-    ['html', { outputFolder: 'test-report', open: 'never' }], // ← Reporte HTML (no se abre automático)
-    ['list'],                            // ← Reporte en consola (rápido y claro)
+    ['list'],                                       // ← Consola
+    ['html', { outputFolder: 'test-report', open: 'never' }], // ← Reporte HTML
   ],
+
+  outputDir: 'artifacts/tmp',                       // ← Artefactos temporales
+  globalSetup: './config/alias-setup.ts',           // ← Precarga de aliases
+
   use: {
-    // ← Configuración del navegador
-    channel: 'chrome',                   // ← Forzar Chrome (no Chromium)
-    locale: 'es-ES',                     // ← Español
-    viewport: { width: 1920, height: 1080 }, // ← Resolución HD 1920x1080
-    permissions: ['geolocation'],        // ← Permiso de ubicación
-    ignoreHTTPSErrors: true,             // ← Ignorar errores HTTPS (si aplica)
+    baseURL: process.env.BASE_URL_SUITE,            // ← Base (Suite)
+    viewport: { width: 1920, height: 1080 },        // ← Resolución (casará con el video)
+    timezoneId: TIMEZONE,                           // ← Zona
+    locale: LOCALE,                                 // ← Idioma navegador
+    geolocation: { latitude: GEO_LAT, longitude: GEO_LON }, // ← Geo
+    permissions: ['geolocation'],                   // ← Permisos
+    extraHTTPHeaders: { 'Accept-Language': BROWSER_LANG },   // ← Idioma HTTP
 
-    // ← Evidencias automáticas
-    screenshot: 'on',                    // ← Captura screenshot en TODOS los tests (exitosos o fallidos)
-    video: 'on',                         // ← Graba video en TODOS los tests (HD, para revisión completa)
-    trace: 'on-first-retry',             // ← Graba trace si se reintentan
+    screenshot: 'only-on-failure',                  // ← Screenshots automáticos solo si falla (además de los nuestros)
+    video: 'on',                                    // ← ✅ Graba video SIEMPRE
+    recordVideo: { size: { width: 1280, height: 720 } }, // ← ✅ Fuerza HD
 
-    // ← Contexto persistente
-    baseURL: process.env.SUITE_URL,      // ← URL base desde .env
+    trace: 'retain-on-failure',                     // ← Traza en fallos (útil)
+    launchOptions: { headless: HEADLESS, slowMo: SLOW_MO_MS }, // ← Lanzamiento
   },
 
-  // ← Proyectos (solo Chrome por ahora)
   projects: [
-    {
-      name: 'chrome',
-      use: {
-        channel: 'chrome',               // ← Fuerza Chrome real
-        locale: 'es-ES',                 // ← Español
-        viewport: { width: 1920, height: 1080 }, // ← Resolución HD
-        permissions: ['geolocation'],    // ← Permiso de ubicación
-      },
-    },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'],  channel: 'chrome', baseURL: process.env.BASE_URL_SUITE } },
+    { name: 'firefox',  use: { ...devices['Desktop Firefox'],                     baseURL: process.env.BASE_URL_SUITE } },
+    { name: 'webkit',   use: { ...devices['Desktop Safari'],                      baseURL: process.env.BASE_URL_SUITE } }
   ],
 });

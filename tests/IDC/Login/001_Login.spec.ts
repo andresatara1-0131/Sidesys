@@ -1,21 +1,37 @@
-// tests/IDC/Login/001_Login.spec.ts
-// ================================================================
-// TEST CASE: Login en IDC
-// Producto: IDC → Login
-// Valida que se pueda iniciar sesión en IDC (si es distinto de Suite).
-// ================================================================
+/** IDC → abrir desde Suite, esperar carga y validar “Inicio”
+ * - Login en Suite con credenciales de .env
+ * - Hub: Productos → Card "Identificacion de Cliente" → botón "Ver"
+ * - Esperar carga real del producto (URL /IDC + menú "Inicio")
+ * - Validar breadcrumb "Inicio"
+ * - Tomar ÚNICA captura final (espera 5s)
+ */
+import { test } from '@fixtures/suite-fixture';           // ← Fixture con app + evidence
+import { IdcHomePage } from '@pages/idc/HomePage';        // ← Page Object del home de IDC
 
-import { test, expect } from '../../../src/fixtures/authenticatedSuite';
-// ← Si IDC usa el mismo login que Suite, este test es redundante.
-// ← Si no, crea un fixture específico o usa login manual.
+test('IDC | Abrir desde Suite y validar Inicio', async ({ app, evidence }) => {
+  await evidence.step('Login Suite', async () => {         // ← Paso: login
+    await app.suite.login.login(process.env.SUITE_USER!, process.env.SUITE_PASS!);
+  });
 
-test('TC-011: Debería poder iniciar sesión en IDC', async ({ authenticatedPage }) => {
-  const page = authenticatedPage;
+  let idcPage;                                             // ← Pestaña del producto
+  await evidence.step('Abrir IDC', async () => {           // ← Paso: abrir producto desde Hub
+    idcPage = await app.suite.hub.openIDC();               // ← Clic “Ver” en tarjeta IDC
+  });
 
-  // Navegar a IDC (desde Suite o directamente)
-  await page.click('text=IDC');                    // ← Menú principal
-  await page.waitForURL('**/idc/dashboard');       // ← Esperar carga de IDC
+  await evidence.step('Esperar carga de IDC', async () => {// ← Paso: esperar carga real
+    const home = new IdcHomePage(idcPage!);                // ← PO del producto
+    await home.esperarCarga();                              // ← ✅ URL /IDC + menú “Inicio” visible
+    // (Opcional) espera fija:
+    // await idcPage!.waitForTimeout(5000);
+  });
 
-  // Validar que estamos en el dashboard de IDC
-  await expect(page.locator('h1:has-text("IDC Dashboard")')).toBeVisible(); // ← Validar título
+  await evidence.step('Validar Inicio', async () => {      // ← Paso: validación funcional
+    await new IdcHomePage(idcPage!).validarInicio();       // ← Breadcrumb “Inicio”
+  });
+
+  await evidence.finalOn(                                   // ← ÚNICA captura final (PNG)
+    idcPage!,
+    'Validación Inicio - IDC',
+    5000
+  );
 });

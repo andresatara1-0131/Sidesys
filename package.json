@@ -1,34 +1,20 @@
 {
-  "name": "playwright-demo",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "suite-playwright",
+  "private": true,
   "scripts": {
-    "build": "tsc",
-    "global-setup": "tsc && node build/global-setup.js",
-    "test": "playwright test",
-    "test:ui": "playwright test --ui",
-    "test:suite": "playwright test tests/suite/ --ui",
-    "test:idc": "playwright test tests/idc/ --ui", 
-    "test:citas": "playwright test tests/citas/ --ui"
+    "test": "cross-env NODE_OPTIONS=\"-r tsconfig-paths/register\" npx playwright test --project=chromium",
+    "test:all": "cross-env NODE_OPTIONS=\"-r tsconfig-paths/register\" npx playwright test",
+    "test:ui": "cross-env NODE_OPTIONS=\"-r tsconfig-paths/register\" npx playwright test --ui",
+    "report": "npx playwright show-report",
+    "pw:install": "npx playwright install --with-deps",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "devDependencies": {
-    "@eslint/js": "^9.34.0",
-    "@playwright/test": "^1.53.2",
-    "@types/node": "^24.0.10",
-    "allure-playwright": "^3.3.3",
-    "eslint": "^9.34.0",
-    "eslint-plugin-react": "^7.37.5",
-    "globals": "^16.3.0",
-    "jiti": "^2.5.1",
+    "@playwright/test": "^1.47.2",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.41.0"
-  },
-  "dependencies": {
-    "dotenv": "^17.0.1"
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.6.2"
   }
 }

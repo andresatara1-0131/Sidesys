@@ -1,13 +1,7 @@
-
-# Playwright
 node_modules/
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-.env
-.DS_Store
-*.log
+playwright-report/
 test-results/
 test-report/
-build/
+artifacts/
+evidencias/
+.env

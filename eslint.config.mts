@@ -1,11 +1,17 @@
-import js from "@eslint/js";
-import globals from "globals";
-import tseslint from "typescript-eslint";
-import pluginReact from "eslint-plugin-react";
-import { defineConfig } from "eslint/config";
+// ESLint flat config (TypeScript + Playwright)
+import tseslint from 'typescript-eslint';
+import js from '@eslint/js';
 
-export default defineConfig([
-  { files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"], plugins: { js }, extends: ["js/recommended"], languageOptions: { globals: globals.browser } },
-  tseslint.configs.recommended,
-  pluginReact.configs.flat.recommended,
-]);
+export default [
+  { ignores: ['node_modules', 'build', 'artifacts', 'allure-*', 'playwright-report', 'test-report', 'test-results', 'evidencias'] },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    files: ['**/*.ts'],
+    languageOptions: { parserOptions: { ecmaVersion: 'latest', sourceType: 'module' } },
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      'no-console': 'off'
+    }
+  }
+];
